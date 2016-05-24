@@ -5,9 +5,13 @@ import android.content.Context;
 public class DataHolder {
 
     private Context context;
+    private DataList dataList;
 
-    public DataHolder(Context context) {
-        this.context = context;
+    private DataHolder() {
+    }
+
+    public static void saveData(Context context,int[][] data){
+        
     }
 
 

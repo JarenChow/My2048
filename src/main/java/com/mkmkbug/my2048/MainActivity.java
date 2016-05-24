@@ -255,7 +255,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private void combineCard(int i, int j, int s1, int s2) {
-            if (cards[i][j].getNumber() == cards[i + s1][j + s2].getNumber()) {
+            if (cards[i][j].getNumber() == cards[i + s1][j + s2].getNumber()
+                    && cards[i][j].getNumber() != 0) {
                 cards[i][j].setNumber(cards[i][j].getNumber() * 2);
                 cards[i + s1][j + s2].setNumber(0);
                 isMoved = true;
