@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">My2048</string>
+    <string name="undo">回退一步</string>
+    <string name="score">分数\n0</string>
+    <string name="best_score">最高分\n0</string>
+    <string name="save_game">保存游戏</string>
+</resources>
