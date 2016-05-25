@@ -366,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
         private void moveOver(boolean isMoved) {
             if (isMoved) {
                 createRandomCard();
-                soundPool.play(soundCombineId, 0.2f, 0.2f, 0, 0, 1);
+                soundPool.play(soundCombineId, 0.5f, 0.5f, 0, 0, 1);
                 dataHolder.saveData(cards, score);
             } else if (isGameOver()) {
                 showDialog("游戏结束!", "重新开始一局吗?\n你可以选择回退", "重新开始",
@@ -376,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
                                 init();
                             }
                         });
-                soundPool.play(soundFailId, 0.2f, 0.2f, 0, 0, 1);
+                soundPool.play(soundFailId, 0.5f, 0.5f, 0, 0, 1);
             }
         }
     }
