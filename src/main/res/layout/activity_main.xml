@@ -64,12 +64,12 @@
                     android:text="@string/undo"/>
 
                 <Button
-                    android:id="@+id/save_game"
+                    android:id="@+id/restart_game"
                     style="?android:attr/buttonBarStyle"
                     android:layout_marginLeft="5dp"
                     android:layout_marginStart="5dp"
                     android:background="@drawable/button_shape"
-                    android:text="@string/save_game"/>
+                    android:text="@string/restart_game"/>
             </TableRow>
         </TableLayout>
     </LinearLayout>

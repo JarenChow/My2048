@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button moveBack;
 
-    private Button saveGame;
+    private Button restartGame;
 
     private int score;
     private TextView scoreText;
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
             details.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(MainActivity.this, "更多功能开启中...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "更多功能以后也不开启...", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -118,11 +118,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            saveGame = (Button) findViewById(R.id.save_game);
-            saveGame.setOnClickListener(new View.OnClickListener() {
+            restartGame = (Button) findViewById(R.id.restart_game);
+            restartGame.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(MainActivity.this, "更多功能开启中...", Toast.LENGTH_SHORT).show();
+                    showDialog("认真脸", "确定重新开始一局吗?", "重新开始",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    init();
+                                }
+                            });
                 }
             });
 
@@ -142,6 +148,8 @@ public class MainActivity extends AppCompatActivity {
         }
         createRandomCard();
         createRandomCard();
+        score = 0;
+        scoreText.setText(String.format(Locale.CHINA, "分数\n%d", score));
         dataHolder = new DataHolder(this);
         dataHolder.saveData(cards, score);
     }
@@ -196,11 +204,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showDialog(String title, String message, DialogInterface.OnClickListener listener) {
+    private void showDialog(String title, String message, String buttonName,
+                            DialogInterface.OnClickListener listener) {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog.setTitle(title);
         dialog.setMessage(message);
-        dialog.setPositiveButton("确认", listener);
+        dialog.setPositiveButton(buttonName, listener);
         dialog.setNegativeButton("取消", null);
         dialog.create().show();
     }
@@ -360,12 +369,14 @@ public class MainActivity extends AppCompatActivity {
                 soundPool.play(soundCombineId, 0.2f, 0.2f, 0, 0, 1);
                 dataHolder.saveData(cards, score);
             } else if (isGameOver()) {
-                showDialog("游戏结束!", "重新开始一局吗?\n你可以选择回退", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        init();
-                    }
-                });
+                showDialog("游戏结束!", "重新开始一局吗?\n你可以选择回退", "重新开始",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                init();
+                            }
+                        });
+                soundPool.play(soundFailId, 0.2f, 0.2f, 0, 0, 1);
             }
         }
     }
