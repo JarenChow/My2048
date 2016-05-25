@@ -10,3 +10,9 @@
 * 基本确立了页面的自适应布局
 * 初步实现了滑动的逻辑
 
+![Examle IMG](https://raw.githubusercontent.com/M3oM3oBug/My2048/master/device_image.png)
+
+# 第二次提交, 0.2 版本
+* 完善了 DataHolder 类
+* 增加了回退操作的功能, 次数限为 50 次
+

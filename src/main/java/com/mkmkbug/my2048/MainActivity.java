@@ -4,11 +4,10 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -20,17 +19,19 @@ public class MainActivity extends AppCompatActivity {
     private int gameContainerLength;
     private Card[][] cards;
     private Random rand;
-    private int[][] data;
-    private ArrayList<int[][]> dataList;
 
     private ImageButton details;
+
+    private Button moveBack;
+
+    private DataHolder dataHolder;
 
     private int score;
 
     public int getGameContainerLength() {
         return gameContainerLength;
     }
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,8 +53,6 @@ public class MainActivity extends AppCompatActivity {
 
         cards = new Card[4][4];
         rand = new Random();
-        data = new int[4][4];
-        dataList = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 cards[i][j] = new Card(this);
@@ -67,11 +66,24 @@ public class MainActivity extends AppCompatActivity {
         createRandomCard();
         createRandomCard();
 
+
+        dataHolder = new DataHolder(this);
+        dataHolder.saveData(cards);
+
+
         details = (ImageButton) findViewById(R.id.details);
         details.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "猫子我爱你哟", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+        moveBack = (Button) findViewById(R.id.move_back);
+        moveBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dataHolder.restoreData();
             }
         });
     }
@@ -87,13 +99,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void saveData() {
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                data[i][j] = cards[i][j].getNumber();
 
-            }
-        }
+    public Card[][] getCards() {
+        return cards;
     }
 
     private boolean isGameOver() {
@@ -168,7 +176,10 @@ public class MainActivity extends AppCompatActivity {
                     moveCard(i, j, 0, -1);
                 }
             }
-            if (isMoved) createRandomCard();
+            if (isMoved) {
+                createRandomCard();
+                dataHolder.saveData(cards);
+            }
         }
 
         private void moveLeft() {
@@ -195,7 +206,10 @@ public class MainActivity extends AppCompatActivity {
                     moveCard(i, j, 0, 1);
                 }
             }
-            if (isMoved) createRandomCard();
+            if (isMoved) {
+                createRandomCard();
+                dataHolder.saveData(cards);
+            }
         }
 
         private void moveDown() {
@@ -219,7 +233,10 @@ public class MainActivity extends AppCompatActivity {
                     moveCard(j, i, -1, 0);
                 }
             }
-            if (isMoved) createRandomCard();
+            if (isMoved) {
+                createRandomCard();
+                dataHolder.saveData(cards);
+            }
         }
 
         private void moveUp() {
@@ -243,7 +260,10 @@ public class MainActivity extends AppCompatActivity {
                     moveCard(j, i, 1, 0);
                 }
             }
-            if (isMoved) createRandomCard();
+            if (isMoved) {
+                createRandomCard();
+                dataHolder.saveData(cards);
+            }
         }
 
         private void moveCard(int i, int j, int s1, int s2) {

@@ -4,4 +4,5 @@
     <string name="score">分数\n0</string>
     <string name="best_score">最高分\n0</string>
     <string name="save_game">保存游戏</string>
+    <string name="icon">icon</string>
 </resources>
