@@ -1,13 +1,20 @@
 package com.mkmkbug.my2048;
 
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.media.SoundPool;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import java.util.Locale;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -17,16 +24,32 @@ public class MainActivity extends AppCompatActivity {
     private GridLayout gameContainer;
     
     private int gameContainerLength;
+
     private Card[][] cards;
+
     private Random rand;
 
     private ImageButton details;
 
     private Button moveBack;
 
-    private DataHolder dataHolder;
+    private Button saveGame;
 
     private int score;
+    private TextView scoreText;
+    private int maxScore;
+    private TextView maxScoreText;
+
+    private DataHolder dataHolder;
+
+    private long exitTime;
+
+    private SoundPool soundPool;
+    private int soundCombineId;
+    private int soundFailId;
+
+    private SharedPreferences pref;
+
 
     public int getGameContainerLength() {
         return gameContainerLength;
@@ -41,51 +64,86 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        dataHolder.saveAll();
         super.onDestroy();
     }
 
-    private void init() {
-        gameContainerLength = getResources().getDisplayMetrics().widthPixels;
-        gameContainer = (GridLayout) findViewById(R.id.game_container);
-        assert gameContainer != null;
-        gameContainer.setMinimumWidth(gameContainerLength);
-        gameContainer.setMinimumHeight(gameContainerLength);
+    @Override
+    public void onBackPressed() {
+        if (System.currentTimeMillis() - exitTime > 1000) {
+            Toast.makeText(this, "再按一次退出", Toast.LENGTH_SHORT).show();
+            exitTime = System.currentTimeMillis();
+        } else {
+            finish();
+        }
+    }
 
-        cards = new Card[4][4];
-        rand = new Random();
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                cards[i][j] = new Card(this);
-                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-                params.setMargins(10, 10, 10, 10);
-                gameContainer.addView(cards[i][j], params);
+    private void init() {
+        if (cards == null) {
+            gameContainerLength = getResources().getDisplayMetrics().widthPixels;
+            gameContainer = (GridLayout) findViewById(R.id.game_container);
+            assert gameContainer != null;
+            gameContainer.setMinimumWidth(gameContainerLength);
+            gameContainer.setMinimumHeight(gameContainerLength);
+
+            cards = new Card[4][4];
+            rand = new Random();
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    cards[i][j] = new Card(this);
+                    GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+                    params.setMargins(10, 10, 10, 10);
+                    gameContainer.addView(cards[i][j], params);
+                }
+            }
+            gameContainer.setOnTouchListener(new MyOnTouchListener());
+
+            soundPool = SoundManager.getSoundPool();
+            soundCombineId = soundPool.load(this, R.raw.combine, 1);
+            soundFailId = soundPool.load(this, R.raw.fail, 1);
+
+            details = (ImageButton) findViewById(R.id.details);
+            details.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(MainActivity.this, "更多功能开启中...", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            moveBack = (Button) findViewById(R.id.move_back);
+            moveBack.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dataHolder.restoreData();
+                }
+            });
+
+            saveGame = (Button) findViewById(R.id.save_game);
+            saveGame.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(MainActivity.this, "更多功能开启中...", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            scoreText = (TextView) findViewById(R.id.score_text);
+            maxScoreText = (TextView) findViewById(R.id.max_score_text);
+
+            pref = getSharedPreferences(DataHolder.DATA_KEY, MODE_PRIVATE);
+
+            maxScore = pref.getInt("maxScore", 0);
+            maxScoreText.setText(String.format(Locale.CHINA, "最高分\n%d", maxScore));
+        } else {
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    cards[i][j].setNumber(0);
+                }
             }
         }
-
-        gameContainer.setOnTouchListener(new MyOnTouchListener());
         createRandomCard();
         createRandomCard();
-
-
         dataHolder = new DataHolder(this);
-        dataHolder.saveData(cards);
-
-
-        details = (ImageButton) findViewById(R.id.details);
-        details.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
-
-        moveBack = (Button) findViewById(R.id.move_back);
-        moveBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dataHolder.restoreData();
-            }
-        });
+        dataHolder.saveData(cards, score);
     }
     
     private void createRandomCard() {
@@ -99,9 +157,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     public Card[][] getCards() {
         return cards;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public int getMaxScore() {
+        return maxScore;
     }
 
     private boolean isGameOver() {
@@ -121,8 +186,25 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
-    
-    
+
+    void updateScore(int number) {
+        score += number;
+        scoreText.setText(String.format(Locale.CHINA, "分数\n%d", score));
+        if (score > maxScore) {
+            maxScore = score;
+            maxScoreText.setText(String.format(Locale.CHINA, "最高分\n%d", score));
+        }
+    }
+
+    private void showDialog(String title, String message, DialogInterface.OnClickListener listener) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle(title);
+        dialog.setMessage(message);
+        dialog.setPositiveButton("确认", listener);
+        dialog.setNegativeButton("取消", null);
+        dialog.create().show();
+    }
+
     private class MyOnTouchListener implements View.OnTouchListener {
         private float startX, startY, offsetX, offsetY;
         private boolean isMoved;
@@ -176,10 +258,7 @@ public class MainActivity extends AppCompatActivity {
                     moveCard(i, j, 0, -1);
                 }
             }
-            if (isMoved) {
-                createRandomCard();
-                dataHolder.saveData(cards);
-            }
+            moveOver(isMoved);
         }
 
         private void moveLeft() {
@@ -206,10 +285,7 @@ public class MainActivity extends AppCompatActivity {
                     moveCard(i, j, 0, 1);
                 }
             }
-            if (isMoved) {
-                createRandomCard();
-                dataHolder.saveData(cards);
-            }
+            moveOver(isMoved);
         }
 
         private void moveDown() {
@@ -233,10 +309,7 @@ public class MainActivity extends AppCompatActivity {
                     moveCard(j, i, -1, 0);
                 }
             }
-            if (isMoved) {
-                createRandomCard();
-                dataHolder.saveData(cards);
-            }
+            moveOver(isMoved);
         }
 
         private void moveUp() {
@@ -260,10 +333,7 @@ public class MainActivity extends AppCompatActivity {
                     moveCard(j, i, 1, 0);
                 }
             }
-            if (isMoved) {
-                createRandomCard();
-                dataHolder.saveData(cards);
-            }
+            moveOver(isMoved);
         }
 
         private void moveCard(int i, int j, int s1, int s2) {
@@ -277,11 +347,27 @@ public class MainActivity extends AppCompatActivity {
         private void combineCard(int i, int j, int s1, int s2) {
             if (cards[i][j].getNumber() == cards[i + s1][j + s2].getNumber()
                     && cards[i][j].getNumber() != 0) {
+                updateScore(cards[i][j].getNumber() * 2);
                 cards[i][j].setNumber(cards[i][j].getNumber() * 2);
                 cards[i + s1][j + s2].setNumber(0);
                 isMoved = true;
             }
         }
+
+        private void moveOver(boolean isMoved) {
+            if (isMoved) {
+                createRandomCard();
+                soundPool.play(soundCombineId, 0.2f, 0.2f, 0, 0, 1);
+                dataHolder.saveData(cards, score);
+            } else if (isGameOver()) {
+                showDialog("游戏结束!", "重新开始一局吗?\n你可以选择回退", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        init();
+                    }
+                });
+            }
+        }
     }
-    
 }
+    
