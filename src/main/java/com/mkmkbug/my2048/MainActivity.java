@@ -201,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
         if (score > maxScore) {
             maxScore = score;
             maxScoreText.setText(String.format(Locale.CHINA, "最高分\n%d", score));
+            dataHolder.saveAll();
         }
     }
 
